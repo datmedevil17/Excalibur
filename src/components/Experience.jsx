@@ -130,7 +130,6 @@ export const Experience = ({ downgradedPerformance = false, playerData,xpChange 
         />
       ))}
 
-      {/* Bullets & Hits */}
       {(isHost() ? bullets : networkBullets).map((b) => (
         <Bullet
           key={b.id}

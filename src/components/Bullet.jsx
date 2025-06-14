@@ -3,6 +3,7 @@ import { isHost } from "playroomkit";
 import { useEffect, useRef } from "react";
 import { MeshBasicMaterial } from "three";
 import { WEAPON_OFFSET } from "./CharacterController";
+import React from "react";
 
 const bulletMaterial = new MeshBasicMaterial({
   color: "hotpink",

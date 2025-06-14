@@ -30,11 +30,16 @@ export const CharacterController = ({
   const character = useRef();
   const rigidbody = useRef();
   const [animation, setAnimation] = useState("Idle");
+  const [spacePressed, setSpacePressed] = useState(false);
+  const [keysPressed, setKeysPressed] = useState(new Set());
   const [weapon, setWeapon] = useState(
     state?.state?.profile2?.weapon || "Pistol"
   );
   const lastShoot = useRef(0);
   const scene = useThree((state) => state.scene);
+  const controls = useRef();
+  const directionalLight = useRef();
+
   const spawnRandomly = () => {
     const spawns = [];
     for (let i = 0; i < 1000; i++) {
@@ -71,6 +76,46 @@ export const CharacterController = ({
     }
   }, [state.state.health]);
 
+  useEffect(() => {
+    if (character.current && userPlayer) {
+      directionalLight.current.target = character.current;
+    }
+  }, [character.current]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const key = e.code;
+      if (key === "Space") {
+        e.preventDefault(); // ✨ This stops the page from scrolling
+        setSpacePressed(true);
+      }
+    
+      if (["KeyW", "KeyA", "KeyS", "KeyD"].includes(key)) {
+        setKeysPressed((prev) => new Set(prev).add(key));
+      }
+    };
+    
+
+    const handleKeyUp = (e) => {
+      const key = e.code;
+      if (["KeyW", "KeyA", "KeyS", "KeyD"].includes(key)) {
+        setKeysPressed((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(key);
+          return newSet;
+        });
+      }
+      if (key === "Space") setSpacePressed(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
+
   useFrame((_, delta) => {
     // CAMERA FOLLOW
     if (controls.current) {
@@ -93,37 +138,54 @@ export const CharacterController = ({
       return;
     }
 
-    // Update player position based on joystick state
     const angle = joystick.angle();
+    let moving = false;
+    let movementAngle = angle;
+
     if (joystick.isJoystickPressed() && angle) {
-      setAnimation("Run");
-      character.current.rotation.y = angle;
+      moving = true;
+    } else if (keysPressed.size > 0) {
+      moving = true;
+      const direction = { x: 0, z: 0 };
 
-      // move character in its own direction
-      const impulse = {
-        x: Math.sin(angle) * MOVEMENT_SPEED * delta,
-        y: 0,
-        z: Math.cos(angle) * MOVEMENT_SPEED * delta,
-      };
+      if (keysPressed.has("KeyW")) direction.z -= 1;
+      if (keysPressed.has("KeyS")) direction.z += 1;
+      if (keysPressed.has("KeyA")) direction.x -= 1;
+      if (keysPressed.has("KeyD")) direction.x += 1;
 
-      rigidbody.current.applyImpulse(impulse, true);
-    } else {
-      setAnimation("Idle");
+      if (direction.x !== 0 || direction.z !== 0) {
+        movementAngle = Math.atan2(direction.x, direction.z);
+      }
     }
 
-    // Check if fire button is pressed
-    if (joystick.isPressed("fire")) {
-      // fire
+    if (moving && movementAngle != null) {
       setAnimation(
-        joystick.isJoystickPressed() && angle ? "Run_Shoot" : "Idle_Shoot"
+        spacePressed || joystick.isPressed("fire") ? "Run_Shoot" : "Run"
       );
+      character.current.rotation.y = movementAngle;
+
+      const impulse = {
+        x: Math.sin(movementAngle) * MOVEMENT_SPEED * delta,
+        y: 0,
+        z: Math.cos(movementAngle) * MOVEMENT_SPEED * delta,
+      };
+      rigidbody.current.applyImpulse(impulse, true);
+    } else {
+      if (spacePressed || joystick.isPressed("fire")) {
+        setAnimation("Idle_Shoot");
+      } else {
+        setAnimation("Idle");
+      }
+    }
+
+    if (joystick.isPressed("fire") || spacePressed) {
       if (isHost()) {
         if (Date.now() - lastShoot.current > FIRE_RATE) {
           lastShoot.current = Date.now();
           const newBullet = {
             id: state.id + "-" + +new Date(),
             position: vec3(rigidbody.current.translation()),
-            angle,
+            angle: movementAngle,
             player: state.id,
           };
           onFire(newBullet);
@@ -154,14 +216,6 @@ export const CharacterController = ({
       }
     }
   });
-  const controls = useRef();
-  const directionalLight = useRef();
-
-  useEffect(() => {
-    if (character.current && userPlayer) {
-      directionalLight.current.target = character.current;
-    }
-  }, [character.current]);
 
   return (
     <group {...props} ref={group}>
@@ -212,14 +266,11 @@ export const CharacterController = ({
           )}
         </group>
         {userPlayer && (
-          // Finally I moved the light to follow the player
-          // This way we won't need to calculate ALL the shadows but only the ones
-          // that are in the camera view
           <directionalLight
             ref={directionalLight}
             position={[25, 18, -25]}
             intensity={0.3}
-            castShadow={!downgradedPerformance} // Disable shadows on low-end devices
+            castShadow={!downgradedPerformance}
             shadow-camera-near={0}
             shadow-camera-far={100}
             shadow-camera-left={-20}
@@ -242,39 +293,29 @@ const PlayerInfo = ({ state }) => {
   const profile = state.profile2;
   const name = profile?.name || "";
   const address = profile?.address || "";
-  const league = profile?.league?.toLowerCase() || "private"; // default to bronze
-
+  const league = profile?.league?.toLowerCase() || "private";
   const leagueTexture = useLoader(TextureLoader, `/ranks/${league}.png`);
+
   return (
     <Billboard position-y={2.5}>
-      {/* Address */}
       <Text position-y={0.75} fontSize={0.3}>
         {address}
         <meshBasicMaterial color="black" />
       </Text>
-
-      {/* Group: League Badge + Name (with reduced spacing) */}
       <group position-y={0.36}>
-        {/* League badge closer to the name */}
         <mesh position={[-(name.length * 0.11 + 0.25), 0, 0]}>
           <planeGeometry args={[0.3, 0.3]} />
           <meshBasicMaterial map={leagueTexture} transparent />
         </mesh>
-
-        {/* Name */}
         <Text fontSize={0.4}>
           {name}
           <meshBasicMaterial color="black" />
         </Text>
       </group>
-
-      {/* Health Bar Background - increased size */}
       <mesh position-z={-0.1}>
         <planeGeometry args={[1, 0.2]} />
         <meshBasicMaterial color="black" transparent opacity={0.5} />
       </mesh>
-
-      {/* Health Bar Fill - adjusted to match new width */}
       <mesh scale-x={health / 100} position-x={-0.5 * (1 - health / 100)}>
         <planeGeometry args={[1, 0.2]} />
         <meshBasicMaterial color="red" />
@@ -283,36 +324,13 @@ const PlayerInfo = ({ state }) => {
   );
 };
 
-const Crosshair = (props) => {
-  return (
-    <group {...props}>
-      <mesh position-z={1}>
+const Crosshair = (props) => (
+  <group {...props}>
+    {[1, 2, 3, 4.5, 6.5, 9].map((z, i) => (
+      <mesh key={i} position-z={z}>
         <boxGeometry args={[0.05, 0.05, 0.05]} />
-        <meshBasicMaterial color="black" transparent opacity={0.9} />
+        <meshBasicMaterial color="black" opacity={0.95 - i * 0.1} transparent />
       </mesh>
-      <mesh position-z={2}>
-        <boxGeometry args={[0.05, 0.05, 0.05]} />
-        <meshBasicMaterial color="black" transparent opacity={0.85} />
-      </mesh>
-      <mesh position-z={3}>
-        <boxGeometry args={[0.05, 0.05, 0.05]} />
-        <meshBasicMaterial color="black" transparent opacity={0.8} />
-      </mesh>
-
-      <mesh position-z={4.5}>
-        <boxGeometry args={[0.05, 0.05, 0.05]} />
-        <meshBasicMaterial color="black" opacity={0.7} transparent />
-      </mesh>
-
-      <mesh position-z={6.5}>
-        <boxGeometry args={[0.05, 0.05, 0.05]} />
-        <meshBasicMaterial color="black" opacity={0.6} transparent />
-      </mesh>
-
-      <mesh position-z={9}>
-        <boxGeometry args={[0.05, 0.05, 0.05]} />
-        <meshBasicMaterial color="black" opacity={0.2} transparent />
-      </mesh>
-    </group>
-  );
-};
+    ))}
+  </group>
+);
