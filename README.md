@@ -1,9 +1,7 @@
 # Excalibur
 
 A next-gen multiplayer shooting game built with React, Three.js, and powered by the Monad blockchain.
-
-
-![Video Thumbnail](https://img.youtube.com/vi/nQI8UNe6cfA/maxresdefault.jpg)
+![Screenshot from 2025-04-27 21-30-49](https://github.com/user-attachments/assets/2a66598f-9214-45c5-8356-ea87b77c29db)
 
 ---
 
@@ -103,32 +101,26 @@ Each screenshot below highlights key moments and UI elements in Excalibur's game
 ---
 
 ### 2. Home Screen — Skins & Weapons
-![Home Screen Screenshot](./assets/screenshots/home.png)
+![Screenshot from 2025-04-27 21-31-07](https://github.com/user-attachments/assets/4b2c6bad-5239-46c3-84da-d9d6024f7a34)
 *Description: Browse the full catalog of skins and weapons. Locked items are clearly marked with padlock icons and stats tooltips display damage, accuracy, and rarity.*
 
 ---
 
 ### 3. Shop Page — Unlockables
-![Shop Screenshot](./assets/screenshots/shop.png)
+![Screenshot from 2025-04-27 21-31-00](https://github.com/user-attachments/assets/6f6a3f65-fe53-440a-9fd8-f0f3bfc1d65b)
 *Description: Purchase or unlock new cosmetic skins and weaponry. Each card shows price in tokens, item rarity, and a preview button for 3D inspection.*
 
 ---
 
 ### 4. In-Game Battle
-![Gameplay Screenshot](./assets/screenshots/gameplay.png)
+![Screenshot from 2025-04-27 21-40-18](https://github.com/user-attachments/assets/f8e0df08-e56e-4d85-bf9e-a560d4d03754)
 *Description: Intense 1v1 combat in a dynamic 3D arena. Observe the responsive controls, health bars, and real-time effects powered by Three.js.*
 
 ---
 
 ### 5. Leaderboard Update
-![Leaderboard Screenshot](./assets/screenshots/leaderboard.png)
+![Screenshot from 2025-04-27 21-31-58](https://github.com/user-attachments/assets/b3497897-a060-4c01-acd8-207691a61c0c)
 *Description: The top-left leaderboard updates live, reflecting kills, deaths, and current match ranking for each player.*
-
----
-
-### 6. Match Summary (XP, Tokens, Rank)
-![Summary Screenshot](./assets/screenshots/summary.png)
-*Description: After quitting, players see a detailed summary: total XP gained, tokens earned, deaths and kills tally, and any rank promotions.*
 
 ---
 
