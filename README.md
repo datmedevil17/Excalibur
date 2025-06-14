@@ -1,7 +1,8 @@
 # Excalibur
 
 A next-gen multiplayer shooting game built with React, Three.js, and powered by the Monad blockchain.
-![Screenshot from 2025-04-27 21-30-49](https://github.com/user-attachments/assets/2a66598f-9214-45c5-8356-ea87b77c29db)
+![Screenshot from 2025-04-27 21-30-49](https://github.com/user-attachments/assets/4deacee0-60e8-499c-89c5-61b46c96c0a3)
+
 
 ---
 
@@ -95,8 +96,8 @@ Start the game, connect your wallet, and dive into the world of Excalibur!
 Each screenshot below highlights key moments and UI elements in Excalibur's gameplay loop.
 
 ### 1. Login and Profile Setup
-![Login Screenshot](./assets/screenshots/login.png)
 *Description: New players connect their MetaMask wallet, then either type a custom username or click “Generate” to receive an AI-crafted name instantly.*
+![Screenshot from 2025-04-27 21-32-39](https://github.com/user-attachments/assets/867fe661-0600-4cc9-91bf-1cfefbadc568)
 
 ---
 
